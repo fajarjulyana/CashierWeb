@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            padding: 20px;
+            background: #f4f4f4;
+        }
+        h2, h3 {
+            color: #333;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        th {
+            background: #007bff;
+            color: white;
+        }
+        .actions a {
+            margin: 0 5px;
+            text-decoration: none;
+            color: red;
+            font-weight: bold;
+        }
+        #qr-reader {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Dashboard Admin</h2>
+
+    <h3>Cari Barang</h3>
+    <input type="text" id="search" placeholder="Cari berdasarkan ID atau Nama">
+    <button onclick="searchBarang()">Cari</button>
+
+    <h3>Pindai QR Code / Barcode</h3>
+    <div id="qr-reader" style="width: 300px;"></div>
+    <button onclick="startScanner()">Mulai Scanner</button>
+    <button onclick="stopScanner()">Hentikan Scanner</button>
+
+    <h3>Daftar Barang</h3>
+    <button onclick="window.location.href='/admin/add_barang'" style="margin-bottom: 10px;">Tambah Barang</button>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nama</th>
+                <th>Harga</th>
+                <th>Jumlah</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="barang-list">
+            {% for barang in barang_list %}
+            <tr>
+                <td>{{ barang.id }}</td>
+                <td>{{ barang.nama }}</td>
+                <td>{{ barang.harga }}</td>
+                <td>{{ barang.jumlah }}</td>
+<td class="actions">
+    <a href="/admin/edit_barang/{{ barang.id }}">Edit</a>
+
+    <form action="/admin/delete_barang/{{ barang.id }}" method="POST" style="display: inline;" 
+          onsubmit="return confirm('Hapus barang ini?');">
+        <button type="submit" style="background: red; color: white; border: none; padding: 5px 10px; cursor: pointer;">
+            Hapus
+        </button>
+    </form>
+</td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        let scanner;
+        function startScanner() {
+            scanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
+            scanner.render((decodedText) => {
+                document.getElementById("search").value = decodedText;
+                scanner.clear();
+                searchBarang();
+            });
+        }
+        function stopScanner() {
+            if (scanner) {
+                scanner.clear();
+            }
+        }
+        function searchBarang() {
+            let searchValue = document.getElementById("search").value.toLowerCase();
+            let rows = document.querySelectorAll("#barang-list tr");
+            rows.forEach(row => {
+                let id = row.cells[0].textContent.toLowerCase();
+                let nama = row.cells[1].textContent.toLowerCase();
+                if (id.includes(searchValue) || nama.includes(searchValue)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+    </script>
+</body>
+</html>

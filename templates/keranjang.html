@@ -1,0 +1,61 @@
+<div class="container mt-4">
+    <h2 class="text-center">🛒 Keranjang Belanja</h2>
+
+    <!-- Notifikasi -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if cart %}
+    <!-- Tabel Keranjang -->
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nama Barang</th>
+                <th>Harga</th>
+                <th>Jumlah</th>
+                <th>Total</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.nama }}</td>
+                <td>Rp {{ "{:,.0f}".format(item.harga) }}</td>
+                <td>{{ item.jumlah }}</td>
+                <td>Rp {{ "{:,.0f}".format(item.harga * item.jumlah) }}</td>
+                <td>
+                    <form action="{{ url_for('hapus_dari_keranjang') }}" method="post">
+                        <input type="hidden" name="id_barang" value="{{ item.id }}">
+                        <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Total dan Checkout -->
+    <div class="text-end">
+        <h4>Total: Rp {{ "{:,.0f}".format(cart | sum(attribute='harga') if cart else 0) }}</h4>
+
+        <form action="{{ url_for('checkout') }}" method="post">
+            <button type="submit" class="btn btn-success">Checkout</button>
+        </form>
+    </div>
+    {% else %}
+    <p class="text-center text-muted">Keranjang masih kosong.</p>
+    {% endif %}
+
+    <!-- Tombol kembali ke dashboard -->
+    <div class="mt-3">
+        <a href="{{ url_for('kasir_dashboard') }}" class="btn btn-secondary">⬅ Kembali ke Dashboard</a>
+    </div>
+</div>

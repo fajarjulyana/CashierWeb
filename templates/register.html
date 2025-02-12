@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to right, #36d1dc, #5b86e5);
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 400px;
+        }
+        .container h2 {
+            margin-bottom: 1rem;
+        }
+        .input-group {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        .input-group label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border 0.3s ease-in-out;
+        }
+        .input-group input:focus, .input-group select:focus {
+            border-color: #36d1dc;
+            outline: none;
+        }
+        .btn {
+            background: linear-gradient(to right, #36d1dc, #5b86e5);
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+        .btn:hover {
+            opacity: 0.8;
+            transform: scale(1.02);
+        }
+        .login {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+        .login a {
+            color: #5b86e5;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .login a:hover {
+            text-decoration: underline;
+        }
+        .flash-messages {
+            background: #ffdddd;
+            color: #a94442;
+            padding: 10px;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Register</h2>
+
+        <!-- Menampilkan pesan flash jika ada -->
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('register') }}" method="POST">
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Masukkan username" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Masukkan password" required>
+            </div>
+            <div class="input-group">
+                <label for="role">Pilih Role</label>
+                <select id="role" name="role" required>
+                    <option value="kasir">Kasir</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">Register</button>
+        </form>
+        <p class="login">Sudah punya akun? <a href="{{ url_for('login') }}">Login di sini</a></p>
+    </div>
+</body>
+</html>
