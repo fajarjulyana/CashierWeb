@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Kasir</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        body {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            font-family: 'Poppins', sans-serif;
+        }
+        .container-box {
+            flex: 2;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2, h3 {
+            text-align: center;
+            color: #007bff;
+        }
+        .table th {
+            background: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-box">
+        <h2>Scan Barang</h2>
+        <input type="text" id="barcodeInput" class="form-control" placeholder="Masukkan ID / Scan Barcode" autofocus>
+        <button class="btn btn-primary mt-2" onclick="searchBarang()">Cari Barang</button>
+        <h3 class="mt-4">Pindai QR Code / Barcode:</h3>
+        <div id="qr-reader" class="mt-2" style="width: 100%; max-width: 400px; margin: auto;"></div>
+        <button class="btn btn-success mt-3" onclick="startScanner()">Mulai Scanner</button>
+        <button class="btn btn-danger mt-2" onclick="stopScanner()">Hentikan Scanner</button>
+
+        <!-- Bagian Keranjang Belanja -->
+        <h2 class="text-center mt-4">🛒 Keranjang Belanja</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if cart %}
+        <table class="table table-bordered mt-3">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nama Barang</th>
+                    <th>Harga</th>
+                    <th>Jumlah</th>
+                    <th>Total</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart %}
+                <tr>
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.nama }}</td>
+                    <td>Rp {{ "{:,.0f}".format(item.harga) }}</td>
+                    <td>{{ item.jumlah }}</td>
+                    <td>Rp {{ "{:,.0f}".format(item.harga * item.jumlah) }}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="hapusDariKeranjang('{{ item.id }}')">Hapus</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-center text-muted">Keranjang masih kosong.</p>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar Total & Checkout -->
+    <div class="sidebar">
+        <h3>Total Pembayaran</h3>
+        {% set total = cart | sum(attribute='harga') %}
+
+        <div class="summary-box mt-2">Total: Rp <span id="totalHargaServer">{{ "{:,.0f}".format(total) }}</span></div>
+        
+        <h4 class="mt-3">Bayar:</h4>
+        <input type="number" id="bayarInput" class="form-control" min="0">
+        
+        <h4 class="mt-3">Kembalian:</h4>
+        <input type="text" id="kembalianOutput" class="form-control" readonly>
+        <button class="btn btn-info mt-2" onclick="hitungKembalian()">Hitung Kembalian</button>
+
+        <form action="{{ url_for('checkout') }}" method="post">
+            <button type="submit" class="btn btn-success mt-3">Checkout</button>
+        </form>
+        
+        <div class="mt-3 text-center">
+            <a href="{{ url_for('kasir_dashboard') }}" class="btn btn-secondary">⬅ Kembali ke Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script>
+        function hitungKembalian() {
+            let total = {{ total }};
+            let bayar = parseFloat(document.getElementById("bayarInput").value);
+            let kembalian = bayar - total;
+            document.getElementById("kembalianOutput").value = kembalian >= 0 ? "Rp " + kembalian.toLocaleString() : "Tidak cukup";
+        }
+
+        function startScanner() {
+            let scanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
+            scanner.render((decodedText) => {
+                document.getElementById("barcodeInput").value = decodedText;
+                scanner.clear();
+                searchBarang();
+            });
+        }
+
+        function stopScanner() {
+            document.getElementById("qr-reader").innerHTML = "";
+        }
+
+        function searchBarang() {
+    let searchValue = document.getElementById("barcodeInput").value.toLowerCase();
+    fetch(`/tambah_keranjang`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_barang: searchValue, jumlah: 1 })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("Barang berhasil ditambahkan!");
+            location.reload(); // Refresh halaman setelah barang ditambahkan
+        } else {
+            alert("Gagal menambahkan barang!");
+        }
+    });
+}
+
+function hapusDariKeranjang(id_barang) {
+    fetch('/hapus_dari_keranjang', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_barang: id_barang })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("Barang berhasil dihapus!");
+            location.reload(); // Refresh halaman setelah barang dihapus
+        } else {
+            alert("Gagal menghapus barang!");
+        }
+    });
+}
+
+
+    </script>
+</body>
+</html>
+
