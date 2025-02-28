@@ -109,34 +109,46 @@
         </tbody>
     </table>
 
-    <script>
-        let scanner;
-        function startScanner() {
-            scanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
-            scanner.render((decodedText) => {
-                document.getElementById("search").value = decodedText;
-                scanner.clear();
-                searchBarang();
-            });
+<script>
+    let scanner;
+
+    function startScanner() {
+        scanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
+        scanner.render((decodedText) => {
+            document.getElementById("search").value = decodedText;
+            scanner.clear();
+            searchBarang();
+        });
+    }
+
+    function stopScanner() {
+        if (scanner) {
+            scanner.clear();
         }
-        function stopScanner() {
-            if (scanner) {
-                scanner.clear();
+    }
+
+    function searchBarang() {
+        let searchValue = document.getElementById("search").value.toLowerCase();
+        let rows = document.querySelectorAll("#barang-list tr");
+        rows.forEach(row => {
+            let id = row.cells[0].textContent.toLowerCase();
+            let nama = row.cells[1].textContent.toLowerCase();
+            if (id.includes(searchValue) || nama.includes(searchValue)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
             }
+        });
+    }
+
+    // Event listener untuk menekan Enter di input pencarian
+    document.getElementById("search").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            searchBarang();
         }
-        function searchBarang() {
-            let searchValue = document.getElementById("search").value.toLowerCase();
-            let rows = document.querySelectorAll("#barang-list tr");
-            rows.forEach(row => {
-                let id = row.cells[0].textContent.toLowerCase();
-                let nama = row.cells[1].textContent.toLowerCase();
-                if (id.includes(searchValue) || nama.includes(searchValue)) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
-            });
-        }
-    </script>
+    });
+</script>
+
 </body>
 </html>
