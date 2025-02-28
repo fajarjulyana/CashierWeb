@@ -115,64 +115,70 @@
     </div>
 
     <!-- Script -->
-    <script>
-        function hitungKembalian() {
-            let total = {{ total }};
-            let bayar = parseFloat(document.getElementById("bayarInput").value);
-            let kembalian = bayar - total;
-            document.getElementById("kembalianOutput").value = kembalian >= 0 ? "Rp " + kembalian.toLocaleString() : "Tidak cukup";
-        }
+<script>
+    function hitungKembalian() {
+        let total = {{ total }};
+        let bayar = parseFloat(document.getElementById("bayarInput").value);
+        let kembalian = bayar - total;
+        document.getElementById("kembalianOutput").value = kembalian >= 0 ? "Rp " + kembalian.toLocaleString() : "Tidak cukup";
+    }
 
-        function startScanner() {
-            let scanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
-            scanner.render((decodedText) => {
-                document.getElementById("barcodeInput").value = decodedText;
-                scanner.clear();
-                searchBarang();
-            });
-        }
+    function startScanner() {
+        let scanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
+        scanner.render((decodedText) => {
+            document.getElementById("barcodeInput").value = decodedText;
+            scanner.clear();
+            searchBarang();
+        });
+    }
 
-        function stopScanner() {
-            document.getElementById("qr-reader").innerHTML = "";
-        }
+    function stopScanner() {
+        document.getElementById("qr-reader").innerHTML = "";
+    }
 
-        function searchBarang() {
-    let searchValue = document.getElementById("barcodeInput").value.toLowerCase();
-    fetch(`/tambah_keranjang`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id_barang: searchValue, jumlah: 1 })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert("Barang berhasil ditambahkan!");
-            location.reload(); // Refresh halaman setelah barang ditambahkan
-        } else {
-            alert("Gagal menambahkan barang!");
+    function searchBarang() {
+        let searchValue = document.getElementById("barcodeInput").value.toLowerCase();
+        fetch(`/tambah_keranjang`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id_barang: searchValue, jumlah: 1 })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Barang berhasil ditambahkan!");
+                location.reload(); // Refresh halaman setelah barang ditambahkan
+            } else {
+                alert("Gagal menambahkan barang!");
+            }
+        });
+    }
+
+    function hapusDariKeranjang(id_barang) {
+        fetch('/hapus_dari_keranjang', {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id_barang: id_barang })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Barang berhasil dihapus!");
+                location.reload(); // Refresh halaman setelah barang dihapus
+            } else {
+                alert("Gagal menghapus barang!");
+            }
+        });
+    }
+
+    // Event listener untuk menekan Enter di input barcode
+    document.getElementById("barcodeInput").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            searchBarang();
         }
     });
-}
-
-function hapusDariKeranjang(id_barang) {
-    fetch('/hapus_dari_keranjang', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id_barang: id_barang })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert("Barang berhasil dihapus!");
-            location.reload(); // Refresh halaman setelah barang dihapus
-        } else {
-            alert("Gagal menghapus barang!");
-        }
-    });
-}
-
-
-    </script>
+</script>
 </body>
 </html>
 
